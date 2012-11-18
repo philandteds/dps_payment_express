@@ -49,5 +49,13 @@ class DPSPaymentExpressRedirectGateway extends eZRedirectGateway
 		curl_close( $ch );
 		return (array) new SimpleXMLElement( $r );
 	}
+
+	public static function name() {
+		return 'DPS Payment Express';
+	}
+
+	public static function costs() {
+		return 0.00;
+	}
 }
 ?>
