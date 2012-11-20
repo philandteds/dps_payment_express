@@ -27,8 +27,9 @@ class DPSPaymentExpressRedirectGateway extends eZRedirectGateway
 
 		$transaction = new DPSPaymentExpressTransaction(
 			array(
-				'amount_input' => $order->attribute( 'total_inc_vat' ),
-				'order_id'     => $order->attribute( 'id' )
+				'amount_input'   => $order->attribute( 'total_inc_vat' ),
+				'order_id'       => $order->attribute( 'id' ),
+				'currency_input' => $order->attribute( 'productcollection' )->attribute( 'currency_code' )
 			)
 		);
 		$transaction->store();
