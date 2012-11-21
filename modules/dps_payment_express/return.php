@@ -64,6 +64,42 @@ if( (bool) $transaction->attribute( 'success' ) ) {
 		eZPaymentObject::continueWorkflow( $paymentObject->attribute( 'workflowprocess_id' ) );
 	}
 
+	$order             = eZOrder::fetch( $transaction->attribute( 'order_id' ) );
+	$xrowPaymentObject = xrowPaymentObject::fetchByOrderID( $transaction->attribute( 'order_id' ) );
+	if( $xrowPaymentObject instanceof xrowPaymentObject === false ) {
+		if( $order instanceof eZOrder ) {
+			$accountInfo       = $order->accountInformation();
+			$xrowPaymentObject = xrowPaymentObject::createNew(
+				$paymentObject instanceof eZPaymentObject ? $paymentObject->attribute( 'workflowprocess_id' ) : 0,
+				$transaction->attribute( 'order_id' ),
+				'DPSPaymentExpressRedirect'
+			);
+		}
+	} else {
+		$xrowPaymentObject->setAttribute( 'payment_string', 'DPSPaymentExpressRedirect' );
+	}
+	if( $xrowPaymentObject instanceof xrowPaymentObject ) {
+		$xrowPaymentObject->approve();
+		$xrowPaymentObject->store();
+	}
+
+	if( $order instanceof eZOrder ) {
+		$xmlString = $order->attribute( 'data_text_1' );
+		if( $xmlString !== null ) {
+			$doc = new DOMDocument();
+			$doc->loadXML( $xmlString );
+
+			$root    = $doc->documentElement;
+			$invoice = $doc->createElement(
+				xrowECommerce::ACCOUNT_KEY_PAYMENTMETHOD,
+				DPSPaymentExpressRedirectGateway::TYPE_DPS_EXPAY
+			);
+			$root->appendChild( $invoice );
+			$order->setAttribute( 'data_text_1', $doc->saveXML() );
+			$order->store();
+		}
+	}
+
 	return $Params['Module']->redirectTo( $URL );
 } else {
 	$tpl = eZTemplate::factory();
