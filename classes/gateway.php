@@ -8,6 +8,7 @@
 
 class DPSPaymentExpressRedirectGateway extends eZRedirectGateway
 {
+	const AUTOMATIC_STATUS = false;
 	const TYPE_DPS_EXPAY = 'dbsexpay';
 
 	public function __construct() {
