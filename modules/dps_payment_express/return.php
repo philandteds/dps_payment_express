@@ -57,13 +57,6 @@ if( (bool) $transaction->attribute( 'success' ) ) {
 	$URL = str_replace( 'ORDER_ID', $transaction->attribute( 'order_id' ), $URL );
 	$URL = str_replace( 'TRANSACTION_ID', $transaction->attribute( 'id' ), $URL );
 
-	$paymentObject = eZPaymentObject::fetchByOrderID( $transaction->attribute( 'order_id' ) );
-	if( $paymentObject instanceof eZPaymentObject ) {
-		$paymentObject->approve();
-		$paymentObject->store();
-		eZPaymentObject::continueWorkflow( $paymentObject->attribute( 'workflowprocess_id' ) );
-	}
-
 	$order             = eZOrder::fetch( $transaction->attribute( 'order_id' ) );
 	$xrowPaymentObject = xrowPaymentObject::fetchByOrderID( $transaction->attribute( 'order_id' ) );
 	if( $xrowPaymentObject instanceof xrowPaymentObject === false ) {
@@ -98,6 +91,13 @@ if( (bool) $transaction->attribute( 'success' ) ) {
 			$order->setAttribute( 'data_text_1', $doc->saveXML() );
 			$order->store();
 		}
+	}
+
+	$paymentObject = eZPaymentObject::fetchByOrderID( $transaction->attribute( 'order_id' ) );
+	if( $paymentObject instanceof eZPaymentObject ) {
+		$paymentObject->approve();
+		$paymentObject->store();
+		eZPaymentObject::continueWorkflow( $paymentObject->attribute( 'workflowprocess_id' ) );
 	}
 
 	return $Params['Module']->redirectTo( $URL );
