@@ -14,10 +14,8 @@ if( $transaction instanceof DPSPaymentExpressTransaction === false ) {
 }
 
 $logger->writeTimedString( 'Callback for order "' . $transaction->attribute( 'order_id' ) . '"' );
-
-$paymentObject = eZPaymentObject::fetchByOrderID( $transaction->attribute( 'order_id' ) );
 // This order is already processed by ezp
-if( $paymentObject instanceof eZPaymentObject === false ) {
+if( (bool) $transaction->attribute( 'success' ) ) {
 	$logger->writeTimedString( 'Redirecting user to order view page' );
 	return $Params['Module']->redirectTo( $URL );
 }
@@ -82,6 +80,7 @@ if( (bool) $transaction->attribute( 'success' ) ) {
 	$URL = str_replace( 'TRANSACTION_ID', $transaction->attribute( 'id' ), $URL );
 
 	$order             = eZOrder::fetch( $transaction->attribute( 'order_id' ) );
+	$paymentObject     = eZPaymentObject::fetchByOrderID( $transaction->attribute( 'order_id' ) );
 	$xrowPaymentObject = xrowPaymentObject::fetchByOrderID( $transaction->attribute( 'order_id' ) );
 	if( $xrowPaymentObject instanceof xrowPaymentObject === false ) {
 		if( $order instanceof eZOrder ) {
