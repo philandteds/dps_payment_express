@@ -13,6 +13,15 @@ if( $transaction instanceof DPSPaymentExpressTransaction === false ) {
 	return $Params['Module']->handleError( eZError::KERNEL_NOT_FOUND, 'kernel' );
 }
 
+$logger->writeTimedString( 'Callback for order "' . $transaction->attribute( 'order_id' ) . '"' );
+
+$paymentObject = eZPaymentObject::fetchByOrderID( $transaction->attribute( 'order_id' ) );
+// This order is already processed by ezp
+if( $paymentObject instanceof eZPaymentObject === false ) {
+	$logger->writeTimedString( 'Redirecting user to order view page' );
+	return $Params['Module']->redirectTo( $URL );
+}
+
 if( eZUser::currentUserID() != $transaction->attribute( 'user_id' ) ) {
 	return $Params['Module']->handleError( eZError::KERNEL_ACCESS_DENIED, 'kernel' );
 }
@@ -71,12 +80,6 @@ if( (bool) $transaction->attribute( 'success' ) ) {
 	$URL = $ini->variable( 'LocalShopSettings', 'PaymentCompleteRedirectURL' );
 	$URL = str_replace( 'ORDER_ID', $transaction->attribute( 'order_id' ), $URL );
 	$URL = str_replace( 'TRANSACTION_ID', $transaction->attribute( 'id' ), $URL );
-
-	$paymentObject = eZPaymentObject::fetchByOrderID( $transaction->attribute( 'order_id' ) );
-	// This order is already processed by ezp
-	if( $paymentObject instanceof eZPaymentObject === false ) {
-		return $Params['Module']->redirectTo( $URL );
-	}
 
 	$order             = eZOrder::fetch( $transaction->attribute( 'order_id' ) );
 	$xrowPaymentObject = xrowPaymentObject::fetchByOrderID( $transaction->attribute( 'order_id' ) );
