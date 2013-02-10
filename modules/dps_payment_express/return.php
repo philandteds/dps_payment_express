@@ -5,6 +5,9 @@
  * @date    10 Nov 2012
  **/
 
+$time   = microtime( true );
+$logger = DPSPaymentExpressRedirectGateway::getLogHandler();
+
 $transaction = DPSPaymentExpressTransaction::fetch( (int) $Params['TransactionID'] );
 if( $transaction instanceof DPSPaymentExpressTransaction === false ) {
 	return $Params['Module']->handleError( eZError::KERNEL_NOT_FOUND, 'kernel' );
@@ -28,9 +31,17 @@ $root->appendChild( $dom->createElement( 'PxPayUserId', $ini->variable( 'LocalSh
 $root->appendChild( $dom->createElement( 'PxPayKey', $ini->variable( 'LocalShopSettings', 'PxPayKey' ) ) );
 $root->appendChild( $dom->createElement( 'Response', $http->getVariable( 'result' ) ) );
 
+$execTime = round( microtime( true ) - $time, 6 );
+$time     = time();
+$logger->writeTimedString( 'Processing input params: ' . $execTime );
+
 $result = DPSPaymentExpressRedirectGateway::sendRequest( $dom->saveXML() );
 $transaction->setAttribute( 'status', DPSPaymentExpressTransaction::STATUS_PROCESSED );
 $transaction->store();
+
+$execTime = round( microtime( true ) - $time, 6 );
+$time     = time();
+$logger->writeTimedString( 'Sending validation request to DPS: ' . $execTime );
 
 if( (bool) $result['@attributes']['valid'] === false ) {
 	eZDebug::writeError( $result['ResponseText'], 'DPS Payment Express' );
@@ -52,10 +63,20 @@ $transaction->setAttribute( 'card_number_2', $result['CardNumber2'] );
 $transaction->setAttribute( 'cvc2_result_code', $result['Cvc2ResultCode'] );
 $transaction->store();
 
+$execTime = round( microtime( true ) - $time, 6 );
+$time     = time();
+$logger->writeTimedString( 'Updating DPS in DB: ' . $execTime );
+
 if( (bool) $transaction->attribute( 'success' ) ) {
 	$URL = $ini->variable( 'LocalShopSettings', 'PaymentCompleteRedirectURL' );
 	$URL = str_replace( 'ORDER_ID', $transaction->attribute( 'order_id' ), $URL );
 	$URL = str_replace( 'TRANSACTION_ID', $transaction->attribute( 'id' ), $URL );
+
+	$paymentObject = eZPaymentObject::fetchByOrderID( $transaction->attribute( 'order_id' ) );
+	// This order is already processed by ezp
+	if( $paymentObject instanceof eZPaymentObject === false ) {
+		return $Params['Module']->redirectTo( $URL );
+	}
 
 	$order             = eZOrder::fetch( $transaction->attribute( 'order_id' ) );
 	$xrowPaymentObject = xrowPaymentObject::fetchByOrderID( $transaction->attribute( 'order_id' ) );
@@ -75,6 +96,9 @@ if( (bool) $transaction->attribute( 'success' ) ) {
 		$xrowPaymentObject->approve();
 		$xrowPaymentObject->store();
 	}
+	$execTime = round( microtime( true ) - $time, 6 );
+	$time     = time();
+	$logger->writeTimedString( 'xRow payment approving: ' . $execTime );
 
 	if( $order instanceof eZOrder ) {
 		$xmlString = $order->attribute( 'data_text_1' );
@@ -93,11 +117,20 @@ if( (bool) $transaction->attribute( 'success' ) ) {
 		}
 	}
 
-	$paymentObject = eZPaymentObject::fetchByOrderID( $transaction->attribute( 'order_id' ) );
+	$execTime = round( microtime( true ) - $time, 6 );
+	$time     = time();
+	$logger->writeTimedString( 'Updating order XML: ' . $execTime );
+
 	if( $paymentObject instanceof eZPaymentObject ) {
 		$paymentObject->approve();
 		$paymentObject->store();
 		eZPaymentObject::continueWorkflow( $paymentObject->attribute( 'workflowprocess_id' ) );
+
+		$execTime = round( microtime( true ) - $time, 6 );
+		$time     = time();
+		$logger->writeTimedString( 'eZ Payment approving: ' . $execTime );
+	} else {
+		$logger->writeTimedString( 'eZ Payment not found' );
 	}
 
 	return $Params['Module']->redirectTo( $URL );

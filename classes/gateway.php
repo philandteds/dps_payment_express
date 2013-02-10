@@ -12,7 +12,11 @@ class DPSPaymentExpressRedirectGateway extends eZRedirectGateway
 	const TYPE_DPS_EXPAY = 'dbsexpay';
 
 	public function __construct() {
-		$this->logger = eZPaymentLogger::CreateForAdd( 'var/log/dps_payment_express.log' );
+		$this->logger = self::getLogHandler();
+	}
+
+	public static function getLogHandler() {
+		return eZPaymentLogger::CreateForAdd( 'var/log/dps_payment_express.log' );
 	}
 
 	public function createPaymentObject( $processID, $orderID ) {
