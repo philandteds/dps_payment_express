@@ -5,6 +5,7 @@
  * @date    10 Nov 2012
  **/
 
+$ini    = eZINI::instance( 'dpspaymentexpress.ini' );
 $time   = microtime( true );
 $logger = DPSPaymentExpressRedirectGateway::getLogHandler();
 
@@ -15,6 +16,10 @@ if( $transaction instanceof DPSPaymentExpressTransaction === false ) {
 
 $logger->writeTimedString( 'Callback for order "' . $transaction->attribute( 'order_id' ) . '"' );
 // This order is already processed by ezp
+$URL = $ini->variable( 'LocalShopSettings', 'PaymentCompleteRedirectURL' );
+$URL = str_replace( 'ORDER_ID', $transaction->attribute( 'order_id' ), $URL );
+$URL = str_replace( 'TRANSACTION_ID', $transaction->attribute( 'id' ), $URL );
+
 if( (bool) $transaction->attribute( 'success' ) ) {
 	$logger->writeTimedString( 'Redirecting user to order view page' );
 	return $Params['Module']->redirectTo( $URL );
@@ -29,7 +34,6 @@ if( $http->hasGetVariable( 'result' ) === false ) {
 	return $Params['Module']->handleError( eZError::KERNEL_NOT_FOUND, 'kernel' );
 }
 
-$ini = eZINI::instance( 'dpspaymentexpress.ini' );
 $dom = new DOMDocument( '1.0', 'utf-8' );
 $dom->formatOutput = true;
 $root = $dom->createElement( 'ProcessResponse' );
@@ -75,10 +79,6 @@ $time     = time();
 $logger->writeTimedString( 'Updating DPS in DB: ' . $execTime );
 
 if( (bool) $transaction->attribute( 'success' ) ) {
-	$URL = $ini->variable( 'LocalShopSettings', 'PaymentCompleteRedirectURL' );
-	$URL = str_replace( 'ORDER_ID', $transaction->attribute( 'order_id' ), $URL );
-	$URL = str_replace( 'TRANSACTION_ID', $transaction->attribute( 'id' ), $URL );
-
 	$order             = eZOrder::fetch( $transaction->attribute( 'order_id' ) );
 	$paymentObject     = eZPaymentObject::fetchByOrderID( $transaction->attribute( 'order_id' ) );
 	$xrowPaymentObject = xrowPaymentObject::fetchByOrderID( $transaction->attribute( 'order_id' ) );
