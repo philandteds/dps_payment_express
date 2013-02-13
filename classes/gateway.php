@@ -35,14 +35,14 @@ class DPSPaymentExpressRedirectGateway extends eZRedirectGateway
 			'extension/dps_payment_express',
 			'Order #%order_id',
 			null,
-			array( '%order_id' => $shopName . '_' . $order->attribute( 'id' ) )
+			array( '%order_id' => $shopName . $order->attribute( 'id' ) )
 		);
 		$transaction = new DPSPaymentExpressTransaction(
 			array(
 				'amount_input'       => $order->attribute( 'total_inc_vat' ),
 				'order_id'           => $order->attribute( 'id' ),
 				'currency_input'     => $order->attribute( 'productcollection' )->attribute( 'currency_code' ),
-				'txn_id'             => $shopName . '_' . $order->attribute( 'id' ),
+				'txn_id'             => $shopName . $order->attribute( 'id' ),
 				'merchant_reference' => $description
 			)
 		);
