@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS `dps_payment_express_transactions`;
 CREATE TABLE `dps_payment_express_transactions` (
 
-  `id` tinyint(2) unsigned NOT NULL auto_increment,
+  `id` int(11) unsigned NOT NULL auto_increment,
   `status` int(11) unsigned NOT NULL,
   `order_id` int(11) unsigned NOT NULL,
   `user_id` int(11) unsigned NOT NULL,

@@ -28,8 +28,20 @@ class DPSPaymentExpressRedirectGateway extends eZRedirectGateway
 		$this->logger->writeTimedString( 'DPSPaymentExpressRedirectGateway::createRedirectionUrl' );
 
 		$processParams = $process->attribute( 'parameter_list' );
-		$order    = eZOrder::fetch( $processParams['order_id'] );
-		$shopName = eZINI::instance( 'xrowecommerce.ini' )->variable( 'Settings', 'Shop' );
+		$order         = eZOrder::fetch( $processParams['order_id'] );
+
+		$shopName = null;
+		$xrowIni  = eZINI::instance( 'xrowecommerce.ini' );
+		$shopIni  = eZINI::instance( 'shop.ini' );
+		if( $xrowIni->hasVariable( 'Settings', 'Shop' ) ) {
+			$shopName = $xrowIni->variable( 'Settings', 'Shop' );
+		}
+		if(
+			$shopName === null
+			&& $shopIni->hasVariable( 'Settings', 'Shop' )
+		) {
+			$shopName = $shopIni->variable( 'Settings', 'Shop' );
+		}
 
 		$description = ezpI18n::tr(
 			'extension/dps_payment_express',
