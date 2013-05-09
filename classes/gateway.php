@@ -45,7 +45,7 @@ class DPSPaymentExpressRedirectGateway extends eZRedirectGateway
 
 		$description = ezpI18n::tr(
 			'extension/dps_payment_express',
-			'Order #%order_id',
+			'%order_id',
 			null,
 			array( '%order_id' => $shopName . $order->attribute( 'id' ) )
 		);

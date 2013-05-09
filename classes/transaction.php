@@ -44,7 +44,7 @@ class DPSPaymentExpressTransaction extends eZPersistentObject
 				'merchant_reference',
 				ezpI18n::tr(
 					'extension/dps_payment_express',
-					'Order #%order_id',
+					'%order_id',
 					null,
 					array( '%order_id' => $this->attribute( 'order_id' ) )
 				)
