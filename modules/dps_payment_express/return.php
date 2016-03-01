@@ -137,7 +137,9 @@ if( (bool) $transaction->attribute( 'success' ) ) {
 
 	return $Params['Module']->redirectTo( $URL );
 } else {
-	$tpl = eZTemplate::factory();
+    $order = eZOrder::fetch( $transaction->attribute( 'order_id' ) );
+    $tpl = eZTemplate::factory();
+    $tpl->setVariable( 'order', $order );
 	$tpl->setVariable( 'transaction', $transaction );
 
 	$Result = array();
