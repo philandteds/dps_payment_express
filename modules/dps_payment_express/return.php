@@ -142,13 +142,15 @@ if( (bool) $transaction->attribute( 'success' ) ) {
     $tpl->setVariable( 'order', $order );
 	$tpl->setVariable( 'transaction', $transaction );
 
-	$Result = array();
+    return $Params['Module']->redirectTo( 'shop/basket' );
+
+	/*$Result = array();
 	$Result['content'] = $tpl->fetch( 'design:dps_payment_express/fail.tpl' );
 	$Result['path']    = array(
 		array(
 			'text' => ezpI18n::tr( 'extension/dps_payment_express', 'DPS Payment Express Transaction' ),
 			'url'  => false
 		)
-	);
+	);*/
 }
 ?>
