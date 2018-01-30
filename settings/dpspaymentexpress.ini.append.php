@@ -19,4 +19,9 @@ Currency=USD
 # - ORDER_ID - order ID
 # - TRANSACTION_ID - transaction ID
 PaymentCompleteRedirectURL=shop/orderview/ORDER_ID
+
+# Unique for each installation transaction suffix
+# Please note max transaction ID length is 16 chars, so do not make it too long
+# If it is set to "auto", it will be generated based on path and hostname
+TransactionSuffix=auto
 */ ?>

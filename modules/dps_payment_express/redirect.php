@@ -14,6 +14,7 @@ $txnType = $transaction->attribute( 'txn_type' ) === DPSPaymentExpressTransactio
 	? 'Auth'
 	: 'Purchase';
 $returnURL = '/dps_payment_express/return/' . $transaction->attribute( 'id' );
+
 eZURI::transformURI( $returnURL, false, 'full' );
 
 $dom     = new DOMDocument( '1.0', 'utf-8' );
@@ -41,7 +42,7 @@ $result = DPSPaymentExpressRedirectGateway::sendRequest( $dom->saveXML() );
 $transaction->setAttribute( 'status', DPSPaymentExpressTransaction::STATUS_GENERATE_REQUEST );
 $transaction->store();
 
-if( (bool) $result['@attributes']['valid'] === false ) {
+if( (bool) $result['@attributes']['valid'] === false || isset( $result['URI'] ) === false ) {
 	eZDebug::writeError( $result['URI'], 'DPS Payment Express' );
 	return $Params['Module']->handleError( eZError::KERNEL_NOT_FOUND, 'kernel' );
 }

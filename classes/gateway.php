@@ -49,12 +49,24 @@ class DPSPaymentExpressRedirectGateway extends eZRedirectGateway
 			null,
 			array( '%order_id' => $shopName . $order->attribute( 'id' ) )
 		);
+
+    $dpsIni        = eZINI::instance( 'dpspaymentexpress.ini' );
+    $transactionID = $shopName . $order->attribute( 'id' );
+    $suffix        = '';
+    if( $dpsIni->hasVariable( 'LocalShopSettings', 'TransactionSuffix' ) ) {
+      $suffix = $dpsIni->variable( 'LocalShopSettings', 'TransactionSuffix' );
+    }
+    if( $suffix == 'auto' ) {
+      $suffix = '-' . mb_strtoupper( substr( md5( getcwd() . '|' . eZSys::hostname() ), 0, 5 ) );
+    }
+    $transactionID .= $suffix;
+
 		$transaction = new DPSPaymentExpressTransaction(
 			array(
 				'amount_input'       => $order->attribute( 'total_inc_vat' ),
 				'order_id'           => $order->attribute( 'id' ),
 				'currency_input'     => $order->attribute( 'productcollection' )->attribute( 'currency_code' ),
-				'txn_id'             => $shopName . $order->attribute( 'id' ),
+				'txn_id'             => $transactionID,
 				'merchant_reference' => $description
 			)
 		);
