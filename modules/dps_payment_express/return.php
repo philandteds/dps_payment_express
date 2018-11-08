@@ -25,11 +25,17 @@ if( (bool) $transaction->attribute( 'success' ) ) {
 	return $Params['Module']->redirectTo( $URL );
 }
 
+$currentUserId = eZUser::currentUserID();
+$transactionUserId = $transaction->attribute( 'user_id' );
+$logger->writeTimedString("Verifying currently logged in matches expected user ID. Actual user: $currentUserId; Expected User: $transactionUserId");
+
 if( eZUser::currentUserID() != $transaction->attribute( 'user_id' ) ) {
-	$actualUserId = eZUser::currentUserID();
-	$orderUserId = $transaction->attribute( 'user_id' );
-	$logger->writeTimedString("Currently logged in user does not match expected user ID (from table dps_payment_express_transactions). Actual user: $actualUserId; Expected User: $orderUserId");
-    // return $Params['Module']->handleError( eZError::KERNEL_ACCESS_DENIED, 'kernel' );
+	if (eZUser::currentUser()->isAnonymous()) {
+        $logger->writeTimedString("Users do not match, but the current user is logged in as 'anonymous'. Allowing, based on the fact that the user ID may have been lost in redirection.");
+    } else {
+        $logger->writeTimedString("Users do not match. Denying.");
+        return $Params['Module']->handleError( eZError::KERNEL_ACCESS_DENIED, 'kernel' );
+	}
 }
 
 $http = eZHTTPTool::instance();
