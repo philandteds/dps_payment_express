@@ -26,11 +26,15 @@ if( (bool) $transaction->attribute( 'success' ) ) {
 }
 
 if( eZUser::currentUserID() != $transaction->attribute( 'user_id' ) ) {
-	return $Params['Module']->handleError( eZError::KERNEL_ACCESS_DENIED, 'kernel' );
+	$actualUserId = eZUser::currentUserID();
+	$orderUserId = $transaction->attribute( 'user_id' );
+	$logger->writeTimedString("Currently logged in user does not match expected user ID (from table dps_payment_express_transactions). Actual user: $actualUserId; Expected User: $orderUserId");
+    // return $Params['Module']->handleError( eZError::KERNEL_ACCESS_DENIED, 'kernel' );
 }
 
 $http = eZHTTPTool::instance();
 if( $http->hasGetVariable( 'result' ) === false ) {
+	$logger->writeTimedString("Callback is missing 'result' GET parameter. Aborting.");
 	return $Params['Module']->handleError( eZError::KERNEL_NOT_FOUND, 'kernel' );
 }
 
